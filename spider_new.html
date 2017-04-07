@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+
+<meta charset="utf-8">
+<link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.5.0/pure-min.css">
+<link rel="stylesheet" href="https://rawgit.com/tpreusse/radar-chart-d3/master/src/radar-chart.css">
+
+<style>
+body {
+  padding: 20px;
+}
+</style>
+
+<style>
+.radar-chart .area {
+  fill-opacity: 0.7;
+}
+.radar-chart.focus .area {
+  fill-opacity: 0.3;
+}
+.radar-chart.focus .area.focused {
+  fill-opacity: 0.9;
+}
+.area.UniversityofToronto, .UniversityofToronto .circle {
+  fill: #F0DFAD;
+  stroke: none;
+}
+.area.UniversityofMassachusetts, .UniversityofMassachusetts .circle {
+  fill: #7EA8BE;
+  stroke: none;
+}
+.area.ArizonaStateUniversity, .ArizonaStateUniversity .circle {
+  fill: #C6878F;
+  stroke: none;
+}
+
+</style>
+
+<script src="http://d3js.org/d3.v3.js"></script>
+<script src="https://rawgit.com/alangrafu/radar-chart-d3/master/src/radar-chart.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3-legend/1.3.0/d3-legend.js" charset="utf-8"></script>
+
+
+<script>
+RadarChart.defaultConfig.color = d3.scale.ordinal().domain([0, 1, 2]).range([ "rgb(153, 107, 195)", "rgb(56, 106, 197)", "rgb(93, 199, 76)"]) ; //function() {};
+RadarChart.defaultConfig.radius = 3;
+RadarChart.defaultConfig.w = 400;
+RadarChart.defaultConfig.h = 400;
+RadarChart.defaultConfig.margin: {top: 20, right: 20, bottom: 20, left: 200};
+</script>
+
+
+<span></span>
+
+
+<script>
+
+
+
+var data = [
+  {
+    className: 'ArizonaStateUniversity',
+    axes: [
+      {axis: "teaching", value: 32.4},
+      {axis: "international", value: 31.9},
+      {axis: "research", value: 38.1},  
+      {axis: "income", value: 32},  
+      {axis: "world rank", value: (200 - 189)/2}
+    ]
+  },
+  {
+    className: 'UniversityofMassachusetts',
+    axes: [
+      {axis: "teaching", value: 40.2},
+      {axis: "international", value: 48.9},
+      {axis: "research", value: 36.3},  
+      {axis: "income", value: 52.2},  
+      {axis: "world rank", value: (200 - 141)/2}
+    ]
+  },
+
+  {
+    className: 'UniversityofToronto', // optional, can be used for styling
+    axes: [
+      {axis: "teaching", value: 75.9},
+      {axis: "international", value: 77.8},
+      {axis: "research", value: 89.3},  
+      {axis: "income", value: 49.1},  
+      {axis: "world rank", value: (200 - 19)/2}
+    ]
+  }
+
+];
+
+</script>
+
+
+
+
+<div class="chart-container"></div>
+<script>
+
+
+//legend 
+function DrawRadarChart(containingElement, data) {
+  /////////////////////////////////////////////////////////
+  //////////// Create the container SVG and g /////////////
+  /////////////////////////////////////////////////////////
+
+  //Remove whatever chart with the same id/class was present before
+  //d3.select(id).select("svg").remove();
+  
+  //Initiate the radar chart SVG
+  // var svg = d3.select(id).append("svg")
+  //     //.attr("width",  cfg.w + cfg.margin.left + cfg.margin.right)
+  //     //.attr("height", cfg.h + cfg.margin.top + cfg.margin.bottom)
+  //     .attr("class", "radar"+id);
+
+  // main drawing 
+  RadarChart.draw(containingElement, data);
+
+  // modify some visuals
+  var cfg = {
+   w: 600,        //Width of the circle
+   h: 600,        //Height of the circle
+   margin: {top: 20, right: 20, bottom: 20, left: 20}, //The margins around the circle
+   legendPosition: {x: 20, y: 20}, // the position of the legend, from the top-left corner of the svg
+   levels: 3,       //How many levels or inner circles should there be drawn
+   maxValue: 0,         //What is the value that the biggest circle will represent
+   labelFactor: 1.25,       //How much farther than the radius of the outer circle should the labels be placed
+   wrapWidth: 60,       //The number of pixels after which a label needs to be given a new line
+   opacityArea: 0.35,       //The opacity of the area of the blob
+   dotRadius: 4,        //The size of the colored circles of each blog
+   opacityCircles: 0.1,       //The opacity of the circles of each blob
+   strokeWidth: 2,      //The width of the stroke around each blob
+   roundStrokes: false,     //If true the area and stroke will follow a round path (cardinal-closed)
+   //color: d3.scale.category10(),    //Color function
+   //color:  d3.scale.ordinal().domain([0, 1, 2]).range([ "rgb(153, 107, 195)", "rgb(56, 106, 197)", "rgb(93, 199, 76)"]),
+   color: RadarChart.defaultConfig.color,
+   axisName: "axis",
+   areaName:"className",
+   value: "value",
+   sortAreas: true,
+  };
+
+  /////////////////////////////////////////////////////////
+  /////////////////// Draw the Legend /////////////////////
+  /////////////////////////////////////////////////////////
+
+  // on mouseover for the legend symbol
+  function cellover(d) {
+      //Dim all blobs
+      d3.selectAll(".level-group")
+        .transition().duration(200)
+        .style("fill-opacity", 0.1); 
+      //Bring back the hovered over blob
+      d3.select(".level-group-" + d)
+        .transition().duration(200)
+        .style("fill-opacity", 0.7);  
+  }
+
+  // on mouseout for the legend symbol
+  function cellout() {
+    //Bring back all blobs
+    d3.selectAll(".level-group")
+      .transition().duration(200)
+      .style("fill-opacity", cfg.opacityArea);
+  }
+
+  var svg = d3.select("svg")
+  console.log("svg element found with class named " + svg.attr("class"));
+
+  svg.append("g")
+    .attr("class", "legendOrdinal")
+    .attr("transform", "translate(" + cfg["legendPosition"]["x"] + "," + cfg["legendPosition"]["y"] + ")");
+
+  var legendOrdinal = d3.legend.color()
+  //d3 symbol creates a path-string, for example
+  //"M0,-8.059274488676564L9.306048591020996,
+  //8.059274488676564 -9.306048591020996,8.059274488676564Z"
+    .shape("path", d3.svg.symbol().type("triangle-up").size(150)())
+    .shapePadding(10)
+    .scale(cfg.color)
+    .labels(cfg.color.domain().map(function(d){
+      return data[d]["className"];
+    }))
+    .on("cellover", function(d){ cellover(d); })
+    .on("cellout", function(d) { cellout(); });
+
+
+  svg.select(".legendOrdinal").call(legendOrdinal);
+
+
+
+  //d3.select("svg").remove(); // redraw everything
+  // RadarChart.draw(containingElement, data);
+  
+}
+
+
+DrawRadarChart(".chart-container", data) ;
+
+</script>
